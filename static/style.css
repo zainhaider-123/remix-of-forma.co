@@ -187,6 +187,17 @@ ul { list-style: none; margin: 0; padding: 0; }
 .paradigm-title { display: block; font-size: 18px; font-weight: 600; line-height: 1.15; }
 .paradigm-link { padding: 0 0 30px 95px; }
 
+/* Mobile: single stacked order, matching the original sequence */
+@media (max-width: 1023px) {
+  .paradigm-col { display: contents; }
+  .paradigm-col-1 > *:nth-child(1) { order: 1; }
+  .paradigm-col-2 > *:nth-child(1) { order: 2; }
+  .paradigm-col-3 > *:nth-child(1) { order: 3; }
+  .paradigm-col-1 > *:nth-child(2) { order: 4; }
+  .paradigm-col-2 > *:nth-child(2) { order: 5; }
+}
+
+
 /* ---------- Stats ---------- */
 .section-head-center { text-align: center; margin-bottom: 40px; }
 .stats-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
