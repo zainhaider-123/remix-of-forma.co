@@ -1,37 +1,35 @@
+# Static HTML version of the site
 
+Recreate the current page as a plain static site that runs without React, delivered alongside the existing app so nothing currently working is touched.
 
-## Problem
+## What you get
 
-The `FadeInScale` animation on the hero image is not visible because:
+A new `static/` folder containing:
 
-1. The hero image is already in the viewport when the page loads
-2. `useInView` detects it as "in view" immediately
-3. Framer Motion skips from `initial` to `animate` so fast the user never sees the transition
+- `index.html` — the full page: nav, hero (video + illustration), achievements, paradigm, design system, explore products, product carousel, knowledge, events, team, footer
+- `style.css` — hand-written CSS covering fonts, colors, spacing, responsive layout, and the fade/scale animations
+- `script.js` — scroll-triggered fade-ins and the product carousel (arrows, drag/swipe, looping)
+- `assets/` — copies of the images and the hero video used by the page
 
-The other sections (Events cards, Paradigm cards, DesignSystem, etc.) work because they start off-screen and the scroll triggers the animation visibly.
+Open `static/index.html` in any browser, or drop the folder on any host. No build step.
 
-## Solution
+## Approach
 
-Modify `FadeInScale` to handle above-the-fold elements by adding a small mount delay. This ensures the component renders in its `initial` state (opacity: 0, scale: 0.9) first, then animates after a brief tick -- even when already in view.
+1. Read each existing section to capture its exact text, image, and layout.
+2. Translate the Tailwind classes into equivalent plain CSS, keeping the same typography scale, colors, and breakpoints.
+3. Replace the animation wrappers (fade-up-blur, fade-in-scale, staggered fade) with CSS keyframes triggered by an IntersectionObserver, including a short mount delay so above-the-fold elements animate visibly.
+4. Rebuild the carousel in vanilla JS with the same snap behaviour and arrow controls.
+5. Verify in a browser: page renders, animations fire on scroll, carousel navigates, layout holds at mobile and desktop widths.
 
-### Technical Details
+## Technical notes
 
-**File: `src/components/FadeInScale.tsx`**
+- Assets are copied into `static/assets/` with relative paths so the folder is fully portable.
+- Animations use `opacity`/`transform` transitions plus a `.is-visible` class added by IntersectionObserver (`once: true` semantics), matching current behaviour.
+- Carousel uses `scroll-snap-type: x mandatory` with programmatic `scrollTo` for arrow clicks and pointer-drag handling.
+- Respects `prefers-reduced-motion` by skipping animations.
+- The React app under `src/` is left unchanged; the preview keeps showing it.
 
-Add a `mounted` state that starts `false` and flips to `true` after mounting. The animation triggers when **both** `mounted` and `isInView` are true. This gives the browser one render cycle to paint the initial state before animating, making the transition visible for elements already in the viewport.
+## Out of scope
 
-```tsx
-const [mounted, setMounted] = React.useState(false);
-const ref = React.useRef(null);
-const isInView = useInView(ref, { once: true });
-
-React.useEffect(() => {
-  const timer = setTimeout(() => setMounted(true), 50);
-  return () => clearTimeout(timer);
-}, []);
-
-// animate only when both mounted and in view
-animate={mounted && isInView ? { opacity: 1, scale: 1 } : {}}
-```
-
-This fix is backward-compatible -- all existing usages (Events, Paradigm, DesignSystem, ExploreProducts, Team) will continue to work exactly the same since they only enter view after mount anyway.
+- No changes to the existing React components (including the pending hero animation fix).
+- No CMS, forms, or backend.
